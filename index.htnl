@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 人格测试 · 发现真实的自己111</title>
+<style>
+  :root{
+    --bg:#0f1021;
+    --bg2:#1a1c3a;
+    --card:#1e2148;
+    --card2:#262a58;
+    --ink:#f4f5ff;
+    --ink2:#b9bcdd;
+    --ink3:#7f83b8;
+    --accent:#8b7cff;
+    --accent2:#6ee7ff;
+    --gold:#ffd166;
+    --green:#5eead4;
+    --red:#ff8fa3;
+    --radius:22px;
+    --shadow:0 20px 50px -20px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    background:
+      radial-gradient(1200px 800px at 15% -10%, rgba(139,124,255,.28), transparent 60%),
+      radial-gradient(1000px 700px at 110% 10%, rgba(110,231,255,.20), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, rgba(255,209,102,.14), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    overflow-x:hidden;
+  }
+  .bg-grid{
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(circle at 50% 40%, #000 0%, transparent 75%);
+  }
+  .orb{position:fixed;border-radius:50%;filter:blur(70px);opacity:.5;z-index:0;pointer-events:none}
+  .orb.a{width:380px;height:380px;background:#8b7cff;top:-80px;left:-80px}
+  .orb.b{width:320px;height:320px;background:#6ee7ff;bottom:-60px;right:-60px}
+
+  .wrap{position:relative;z-index:1;width:100%;max-width:760px;padding:32px 20px 60px}
+  header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:17px;letter-spacing:.5px}
+  .brand .logo{
+    width:40px;height:40px;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;box-shadow:0 8px 24px -6px rgba(139,124,255,.7);
+  }
+  .tag{font-size:12px;color:var(--ink3);border:1px solid rgba(255,255,255,.12);padding:6px 12px;border-radius:999px}
+
+  .screen{display:none;animation:fade .45s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* 欢迎页 */
+  .hero{text-align:center;padding:30px 0 10px}
+  .hero h1{font-size:40px;line-height:1.2;font-weight:800;letter-spacing:-.5px;margin-bottom:16px}
+  .hero h1 .grad{
+    background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{color:var(--ink2);font-size:16px;line-height:1.7;max-width:520px;margin:0 auto}
+  .four-types{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:34px 0 8px}
+  .ft{
+    background:var(--card);border:1px solid rgba(255,255,255,.08);
+    padding:16px 18px;border-radius:16px;min-width:96px;text-align:center;
+  }
+  .ft .k{font-size:26px;font-weight:800}
+  .ft .v{font-size:12px;color:var(--ink3);margin-top:4px}
+  .ft.i .k{color:var(--accent)} .ft.e .k{color:var(--accent2)}
+  .ft.s .k{color:var(--gold)} .ft.n .k{color:var(--green)}
+  .ft.t .k{color:var(--red)} .ft.f .k{color:var(--accent)}
+  .ft.j .k{color:var(--accent2)} .ft.p .k{color:var(--gold)}
+
+  .meta{margin:26px auto 0;display:flex;gap:24px;justify-content:center;color:var(--ink3);font-size:13px}
+  .meta span b{color:var(--ink);font-weight:700}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:linear-gradient(135deg,var(--accent),#6d5cff);
+    color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;
+    padding:16px 40px;border-radius:999px;
+    box-shadow:0 14px 34px -10px rgba(139,124,255,.8);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 20px 40px -10px rgba(139,124,255,.9)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--ink2);box-shadow:none}
+  .btn.ghost:hover{border-color:rgba(255,255,255,.4);color:var(--ink)}
+
+  .cta{margin-top:36px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+  /* 测试页 */
+  .quiz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:13px;color:var(--ink3)}
+  .progress-track{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-bottom:34px}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px;transition:width .4s ease}
+  .dim-tag{font-size:12px;color:var(--accent2);letter-spacing:1px;font-weight:700;margin-bottom:10px}
+  .q-text{font-size:24px;font-weight:700;line-height:1.45;margin-bottom:30px}
+  .opts{display:flex;flex-direction:column;gap:12px}
+  .opt{
+    display:flex;align-items:center;gap:14px;
+    background:var(--card);border:1px solid rgba(255,255,255,.08);
+    padding:18px 20px;border-radius:16px;cursor:pointer;font-size:16px;
+    transition:all .16s ease;color:var(--ink2);
+  }
+  .opt:hover{border-color:var(--accent);color:var(--ink);transform:translateX(4px);background:var(--card2)}
+  .opt .dot{
+    width:20px;height:20px;border-radius:50%;flex-shrink:0;
+    border:2px solid rgba(255,255,255,.25);position:relative;transition:all .16s ease;
+  }
+  .opt .side{font-size:12px;color:var(--ink3);flex-shrink:0;font-weight:600;min-width:18px}
+  .opt.right{justify-content:flex-start}
+  .opt.left{justify-content:flex-start}
+  .opt.selected{border-color:var(--accent);background:var(--card2);color:var(--ink)}
+  .opt.selected .dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(139,124,255,.22)}
+  .opt.selected .dot::after{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
+
+  /* 结果页 */
+  .result-card{
+    background:var(--card);border:1px solid rgba(255,255,255,.1);
+    border-radius:var(--radius);padding:40px 32px;box-shadow:var(--shadow);
+    text-align:center;position:relative;overflow:hidden;
+  }
+  .result-card .glow{position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:360px;height:260px;border-radius:50%;filter:blur(80px);opacity:.4;z-index:0}
+  .result-card>*{position:relative;z-index:1}
+  .badge{font-size:12px;letter-spacing:2px;color:var(--accent2);font-weight:700;margin-bottom:14px}
+  .mbti-type{font-size:72px;font-weight:900;letter-spacing:4px;line-height:1;margin-bottom:8px}
+  .type-name{font-size:22px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+  .type-en{font-size:13px;color:var(--ink3);margin-bottom:24px}
+  .type-desc{color:var(--ink2);font-size:15px;line-height:1.8;max-width:480px;margin:0 auto 30px}
+  .bars{display:flex;flex-direction:column;gap:16px;max-width:460px;margin:0 auto 34px;text-align:left}
+  .bar-row{display:flex;align-items:center;gap:12px;font-size:13px}
+  .bar-row .lbl{width:34px;font-weight:800;font-size:15px;text-align:center}
+  .bar-row .lbl.dimA{color:var(--accent)} .bar-row .lbl.dimB{color:var(--accent2)}
+  .bar{flex:1;height:12px;background:rgba(255,255,255,.08);border-radius:999px;position:relative;overflow:hidden}
+  .bar .fill{position:absolute;top:0;bottom:0;border-radius:999px;transition:width 1s ease}
+  .bar .fill.left{left:0;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .bar .fill.right{right:0;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+  .bar-row .pct{width:44px;text-align:right;color:var(--ink3);font-size:12px}
+
+  .traits{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:460px;margin:0 auto 30px}
+  .trait{background:var(--card2);border-radius:14px;padding:14px;font-size:13px;text-align:left}
+  .trait b{display:block;color:var(--accent2);margin-bottom:4px;font-size:13px}
+  .trait span{color:var(--ink2);line-height:1.6}
+
+  .restart{margin-top:8px}
+
+  /* 16 型人格全览 */
+  .types-section{margin-top:44px;padding-top:8px}
+  .types-head{text-align:center;margin-bottom:34px}
+  .types-head h2{font-size:30px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px}
+  .types-head p{color:var(--ink3);font-size:14px}
+  .type-group{margin-bottom:34px}
+  .type-group-title{
+    display:flex;align-items:center;gap:10px;margin-bottom:16px;
+    font-size:15px;font-weight:700;color:var(--ink2);letter-spacing:1px;
+  }
+  .type-group-title .bar{flex:none;width:4px;height:18px;border-radius:2px;background:linear-gradient(180deg,var(--accent),var(--accent2))}
+  .type-group-title .en{color:var(--ink3);font-weight:500;font-size:12px;letter-spacing:.5px}
+  .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .type-card{
+    background:var(--card);border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;padding:20px;transition:all .18s ease;cursor:default;
+  }
+  .type-card:hover{border-color:rgba(255,255,255,.22);transform:translateY(-3px);background:var(--card2)}
+  .type-card .tc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .type-card .tc-code{font-size:18px;font-weight:900;letter-spacing:.5px;color:var(--accent)}
+  .type-card .tc-name{font-size:15px;font-weight:700;color:var(--ink)}
+  .type-card .tc-en{font-size:11px;color:var(--ink3);margin-left:auto}
+  .type-card .tc-desc{color:var(--ink2);font-size:13px;line-height:1.7}
+
+  footer{margin-top:40px;text-align:center;color:var(--ink3);font-size:12px;line-height:1.8}
+  @media(max-width:560px){
+    .hero h1{font-size:32px}
+    .mbti-type{font-size:56px}
+    .four-types{gap:8px}
+    .ft{padding:12px 12px;min-width:76px}
+    .ft .k{font-size:20px}
+    .type-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="orb a"></div>
+<div class="orb b"></div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="logo">🧭</span> 人格罗盘 · MBTI</div>
+    <span class="tag">16 型人格测试</span>
+  </header>
+
+  <!-- 欢迎页 -->
+  <section class="screen active" id="welcome">
+    <div class="hero">
+      <h1>发现<span class="grad">真实的自己</span></h1>
+      <p>回答 30 个问题，探索你的性格偏好。MBTI 将人格分为四个维度、十六种类型，帮助你理解自己的思维与行为方式。</p>
+    </div>
+    <div class="four-types">
+      <div class="ft i"><div class="k">I / E</div><div class="v">内向 · 外向</div></div>
+      <div class="ft s"><div class="k">S / N</div><div class="v">实感 · 直觉</div></div>
+      <div class="ft t"><div class="k">T / F</div><div class="v">思考 · 情感</div></div>
+      <div class="ft j"><div class="k">J / P</div><div class="v">判断 · 感知</div></div>
+    </div>
+    <div class="meta">
+      <span>📝 <b>30</b> 道题</span>
+      <span>⏱️ 约 <b>5</b> 分钟</span>
+      <span>🎯 <b>16</b> 种结果</span>
+    </div>
+    <div class="cta">
+      <button class="btn" onclick="startTest()">开始测试 →</button>
+      <button class="btn ghost" onclick="goTypes()">了解 16 型人格</button>
+    </div>
+  </section>
+
+  <!-- 测试页 -->
+  <section class="screen" id="quiz">
+    <div class="quiz-head">
+      <span id="qDim">维度 · E/I</span>
+      <span id="qNum">1 / 30</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="dim-tag" id="dimTag">能量来源</div>
+    <div class="q-text" id="qText"></div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <!-- 结果页 -->
+  <section class="screen" id="result">
+    <div class="result-card">
+      <div class="glow"></div>
+      <div class="badge">YOUR PERSONALITY TYPE</div>
+      <div class="mbti-type" id="rType"></div>
+      <div class="type-name" id="rName"></div>
+      <div class="type-en" id="rEn"></div>
+      <div class="type-desc" id="rDesc"></div>
+      <div class="bars" id="rBars"></div>
+      <div class="traits" id="rTraits"></div>
+      <div class="restart">
+        <button class="btn ghost" onclick="restart()">↺ 重新测试</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 型人格全览 -->
+  <section class="types-section" id="types">
+    <div class="types-head">
+      <h2>16 型人格全览</h2>
+      <p>四个维度两两组合，构成十六种独特的人格类型</p>
+    </div>
+    <div id="typesContainer"></div>
+  </section>
+
+  <footer>结果仅供参考，人格没有优劣之分 · 你是独一无二的</footer>
+</div>
+
+<script>
+// —— 题库：四个维度，共 30 题 ——
+const QUESTIONS = [
+  // 能量来源 E/I（8 题）
+  { dim:"EI", tag:"能量来源", text:"周末空闲时，你更倾向于如何度过？",
+    left:"独处充电，看书或刷剧", right:"约朋友聚会，热闹一场", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"在热闹的聚会里，你通常感觉？",
+    left:"有点累，想早点回家", right:"越聊越兴奋，充满活力", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"认识新朋友时，你更可能？",
+    left:"先观察，等对方主动", right:"主动搭话，打开话匣子", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"长时间社交后，你通常？",
+    left:"需要独处来恢复精力", right:"反而更精神、意犹未尽", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"遇到问题时，你习惯？",
+    left:"先自己想清楚再说", right:"找人聊聊，边说边想", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"在团队讨论中，你更常？",
+    left:"倾听为主，想好才发言", right:"边想边说，活跃气氛", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"你的社交圈通常是？",
+    left:"几个深交的密友", right:"朋友很多、圈子广", key:"E" },
+  { dim:"EI", tag:"能量来源", text:"一个人待着时，你更多感到？",
+    left:"自在、放松、享受", right:"有点闷，想找人陪", key:"E" },
+
+  // 信息获取 S/N（8 题）
+  { dim:"SN", tag:"信息获取", text:"处理一件事时，你更相信？",
+    left:"眼前的事实与细节", right:"背后的直觉与联想", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"学习新东西时，你更喜欢？",
+    left:"按步骤、有具体的例子", right:"抓大方向、理解概念", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"你更常沉浸于？",
+    left:"当下的现实体验", right:"未来的可能性想象", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"看书/看剧时，你更关注？",
+    left:"情节、细节是否真实合理", right:"背后的寓意与象征", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"描述一件事时，你习惯？",
+    left:"具体、准确、如实描述", right:"用比喻和联想表达", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"面对新事物，你更关注？",
+    left:"它现在能怎么用", right:"它未来可能带来什么", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"你更容易记住？",
+    left:"亲身经历的具体细节", right:"当时得到的启发和感受", key:"N" },
+  { dim:"SN", tag:"信息获取", text:"你喜欢的工作方式更接近？",
+    left:"有明确流程、可复制", right:"自由探索、不断创新", key:"N" },
+
+  // 决策方式 T/F（7 题）
+  { dim:"TF", tag:"决策方式", text:"做决定时，你更看重？",
+    left:"逻辑与道理是否站得住", right:"大家感受是否舒服", key:"F" },
+  { dim:"TF", tag:"决策方式", text:"朋友向你诉苦，你第一反应是？",
+    left:"帮他分析问题、出主意", right:"先安慰、共情他的情绪", key:"F" },
+  { dim:"TF", tag:"决策方式", text:"面对批评时，你更在意？",
+    left:"批评是否客观合理", right:"对方的语气和态度", key:"F" },
+  { dim:"TF", tag:"决策方式", text:"你认为自己更接近？",
+    left:"理性、客观、讲逻辑", right:"感性、体贴、重感受", key:"F" },
+  { dim:"TF", tag:"决策方式", text:"遇到分歧时，你更倾向？",
+    left:"就事论事，讲清楚对错", right:"照顾气氛，避免伤和气", key:"F" },
+  { dim:"TF", tag:"决策方式", text:"评价一个方案，你首先？",
+    left:"看它是否可行、高效", right:"看它是否让人接受", key:"F" },
+  { dim:"TF", tag:"决策方式", text:"别人觉得你更像？",
+    left:"冷静的思考者", right:"温暖的有心人", key:"F" },
+
+  // 生活方式 J/P（7 题）
+  { dim:"JP", tag:"生活方式", text:"面对旅行计划，你更喜欢？",
+    left:"提前安排得明明白白", right:"说走就走，随性而为", key:"P" },
+  { dim:"JP", tag:"生活方式", text:"你的房间/桌面通常是？",
+    left:"整洁有序，井井有条", right:"看似乱，但自己找得到", key:"P" },
+  { dim:"JP", tag:"生活方式", text:"截止日期临近时，你倾向？",
+    left:"按计划稳步推进", right:"灵感爆发，冲刺完成", key:"P" },
+  { dim:"JP", tag:"生活方式", text:"面对一份任务，你习惯？",
+    left:"先列计划，再一步步做", right:"先做起来，边做边调整", key:"P" },
+  { dim:"JP", tag:"生活方式", text:"做好的计划被临时打乱，你会？",
+    left:"有点烦躁，想尽快回到正轨", right:"无所谓，随机应变", key:"P" },
+  { dim:"JP", tag:"生活方式", text:"你更喜欢的生活节奏是？",
+    left:"规律、稳定、有掌控感", right:"自由、灵活、充满变化", key:"P" },
+  { dim:"JP", tag:"生活方式", text:"对于未完成的待办事项，你？",
+    left:"心里惦记，尽快清掉", right:"放着，看心情再处理", key:"P" },
+];
+
+// —— 16 型结果数据（完整名称 + 描述）——
+const TYPES = {
+  INTJ:{ name:"建筑师", full:"INTJ · 建筑师", en:"Architect", enCn:"战略家", color:"#8b7cff",
+    desc:"深思熟虑的战略家，拥有强大的独立判断力与远见。你擅长制定长期计划，把复杂想法转化为清晰的路径。理性、自律、追求卓越，是天生的问题解决者。",
+    traits:[["优势","战略眼光、独立、自律"],["相处","尊重深度与真诚，讨厌空谈"]] },
+  INTP:{ name:"逻辑学家", full:"INTP · 逻辑学家", en:"Logician", enCn:"思想家", color:"#6ee7ff",
+    desc:"好奇心驱动的思想者，热衷拆解问题、寻找底层规律。你的世界由概念与逻辑构筑，自由而深邃。客观、创新、独立思考，永远在追问「为什么」。",
+    traits:[["优势","分析力强、创新、客观"],["相处","享受探讨想法，包容不同观点"]] },
+  ENTJ:{ name:"指挥官", full:"ENTJ · 指挥官", en:"Commander", enCn:"领导者", color:"#ff8fa3",
+    desc:"天生的领袖与组织者，目标明确、行动果决。你擅长整合资源、带领团队把愿景变成现实。自信、高效、有魄力，是天生的掌舵者。",
+    traits:[["优势","果断、高效、有魄力"],["相处","欣赏能力与效率，喜欢挑战"]] },
+  ENTP:{ name:"辩论家", full:"ENTP · 辩论家", en:"Debater", enCn:"创意者", color:"#ffd166",
+    desc:"机智灵活的探索者，永远在寻找新的可能。你享受头脑风暴，擅长用创意打破常规、连接看似无关的点。思维敏捷、幽默健谈，是天生的点子王。",
+    traits:[["优势","思维敏捷、好奇、幽默"],["相处","喜欢思想碰撞，讨厌无聊"]] },
+
+  INFJ:{ name:"提倡者", full:"INFJ · 提倡者", en:"Advocate", enCn:"理想家", color:"#5eead4",
+    desc:"安静而有洞察力的理想主义者，内心怀揣对人和世界的深切关怀。你擅长理解他人、看见本质，追求有意义的人生。坚定、共情、富有远见。",
+    traits:[["优势","洞察力、共情、坚定"],["相处","重视真诚与深度连接"]] },
+  INFP:{ name:"调停者", full:"INFP · 调停者", en:"Mediator", enCn:"梦想家", color:"#8b7cff",
+    desc:"充满理想与诗意的梦想家，内心遵循自己的价值观。你温柔而坚定，总在追寻真实与美好。想象力丰富、真诚包容，忠于内心的信念。",
+    traits:[["优势","想象力、真诚、包容"],["相处","珍视内心世界，渴望被理解"]] },
+  ENFJ:{ name:"主人公", full:"ENFJ · 主人公", en:"Protagonist", enCn:"引路人", color:"#ff8fa3",
+    desc:"热情洋溢的鼓舞者，天生善于团结他人。你能看到每个人的潜力，并愿意带领大家走向更好的方向。有感染力、乐于助人、善于沟通。",
+    traits:[["优势","感染力、利他、沟通"],["相处","乐于助人，需要被需要"]] },
+  ENFP:{ name:"竞选者", full:"ENFP · 竞选者", en:"Campaigner", enCn:"乐天派", color:"#ffd166",
+    desc:"热情自由的梦想家，对世界充满好奇与热爱。你善于发现可能性，用自己的能量感染身边的每一个人。乐观、创造、充满生命力。",
+    traits:[["优势","热情、创造、乐观"],["相处","追求自由与共鸣"]] },
+
+  ISTJ:{ name:"物流师", full:"ISTJ · 物流师", en:"Logistician", enCn:"实干家", color:"#8b7cff",
+    desc:"可靠而严谨的实干者，相信秩序与责任。你言出必行，用踏实与自律赢得他人的信赖。细致、有担当、值得托付，是团队里最稳的基石。",
+    traits:[["优势","可靠、细致、有担当"],["相处","重视承诺与规则"]] },
+  ISFJ:{ name:"守卫者", full:"ISFJ · 守卫者", en:"Defender", enCn:"守护者", color:"#5eead4",
+    desc:"温暖体贴的守护者，默默付出、细心周到。你用行动关爱身边的人，是团队里最坚实的后盾。负责、细腻、重情重义，让人安心。",
+    traits:[["优势","负责、细心、温暖"],["相处","低调付出，珍视安定"]] },
+  ESTJ:{ name:"总经理", full:"ESTJ · 总经理", en:"Executive", enCn:"管理者", color:"#ff8fa3",
+    desc:"务实高效的组织者，擅长把事办成、把规矩立好。你目标清晰、执行力强，是可靠的掌舵者。条理分明、决断果断、讲求实效。",
+    traits:[["优势","执行力、条理、决断"],["相处","看重效率与结果"]] },
+  ESFJ:{ name:"执政官", full:"ESFJ · 执政官", en:"Consul", enCn:"热心肠", color:"#ffd166",
+    desc:"热心友善的协调者，重视和谐与归属感。你乐于照顾他人，让周围的人都感到温暖与安心。亲和、负责、细致周到，是大家的贴心人。",
+    traits:[["优势","亲和、负责、细致"],["相处","需要被肯定与认可"]] },
+
+  ISTP:{ name:"鉴赏家", full:"ISTP · 鉴赏家", en:"Virtuoso", enCn:"实践家", color:"#6ee7ff",
+    desc:"冷静灵活的实践者，动手能力极强。你喜欢探索事物的运作原理，在行动中寻找自由与乐趣。理性、务实、临危不乱，是天生的能工巧匠。",
+    traits:[["优势","灵活、理性、动手强"],["相处","保持距离感，重视独立"]] },
+  ISFP:{ name:"探险家", full:"ISFP · 探险家", en:"Adventurer", enCn:"艺术家", color:"#8b7cff",
+    desc:"安静敏感的艺术家，用感官体验世界。你随和而真诚，活在当下，追求美与自由。有审美、有温度、温柔低调，用作品表达自己。",
+    traits:[["优势","审美、真诚、随和"],["相处","温柔低调，讨厌冲突"]] },
+  ESTP:{ name:"企业家", full:"ESTP · 企业家", en:"Entrepreneur", enCn:"行动派", color:"#ff8fa3",
+    desc:"充满活力的行动派，热爱冒险与挑战。你反应迅速、务实机敏，总能在现实中抓住机会。胆识过人、应变力强、敢闯敢干。",
+    traits:[["优势","胆识、应变、务实"],["相处","喜欢刺激与直接"]] },
+  ESFP:{ name:"表演者", full:"ESFP · 表演者", en:"Entertainer", enCn:"开心果", color:"#ffd166",
+    desc:"热情洋溢的开心果，天生自带光环。你享受生活、乐于分享快乐，是人群中最闪亮的存在。幽默、有感染力、活在当下，走到哪里都带来笑声。",
+    traits:[["优势","热情、幽默、感染力"],["相处","热爱当下与欢乐"]] },
+};
+
+let answers = [];       // 每题选的 "left"/"right"
+let current = 0;
+
+function startTest(){
+  answers = []; current = 0;
+  showScreen("quiz");
+  renderQuestion();
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// 跳转到 16 型人格全览
+function goTypes(){
+  const el = document.getElementById("types");
+  el.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+// 渲染 16 型人格全览
+function renderTypes(){
+  const groups = [
+    { title:"分析家", en:"Analysts", types:["INTJ","INTP","ENTJ","ENTP"] },
+    { title:"外交家", en:"Diplomats", types:["INFJ","INFP","ENFJ","ENFP"] },
+    { title:"守护者", en:"Sentinels", types:["ISTJ","ISFJ","ESTJ","ESFJ"] },
+    { title:"探索家", en:"Explorers", types:["ISTP","ISFP","ESTP","ESFP"] },
+  ];
+  const container = document.getElementById("typesContainer");
+  container.innerHTML = "";
+  groups.forEach(g=>{
+    const groupEl = document.createElement("div");
+    groupEl.className = "type-group";
+    const title = document.createElement("div");
+    title.className = "type-group-title";
+    title.innerHTML = `<span class="bar"></span><span>${g.title}</span><span class="en">${g.en}</span>`;
+    groupEl.appendChild(title);
+    const grid = document.createElement("div");
+    grid.className = "type-grid";
+    g.types.forEach(code=>{
+      const t = TYPES[code];
+      const card = document.createElement("div");
+      card.className = "type-card";
+      card.innerHTML = `
+        <div class="tc-top">
+          <span class="tc-code" style="color:${t.color}">${code}</span>
+          <span class="tc-name">${t.name}</span>
+          <span class="tc-en">${t.en}</span>
+        </div>
+        <div class="tc-desc">${t.desc}</div>`;
+      grid.appendChild(card);
+    });
+    groupEl.appendChild(grid);
+    container.appendChild(groupEl);
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById("qDim").textContent = "维度 · " + q.dim;
+  document.getElementById("qNum").textContent = (current+1) + " / " + QUESTIONS.length;
+  document.getElementById("dimTag").textContent = q.tag;
+  document.getElementById("qText").textContent = q.text;
+  document.getElementById("progressFill").style.width = (current / QUESTIONS.length * 100) + "%";
+
+  const optsEl = document.getElementById("opts");
+  optsEl.innerHTML = "";
+  [q.left, q.right].forEach((txt, idx)=>{
+    const side = idx===0 ? "left" : "right";
+    const d = document.createElement("div");
+    d.className = "opt " + side;
+    d.innerHTML = `<span class="dot"></span><span>${txt}</span><span class="side">${side==="left"?"◀":"▶"}</span>`;
+    d.onclick = ()=>choose(side, d);
+    optsEl.appendChild(d);
+  });
+}
+
+function choose(side, el){
+  document.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
+  el.classList.add("selected");
+  answers[current] = side;
+  // 短暂延迟，让用户看到选中态再跳转
+  setTimeout(()=>{
+    current++;
+    if(current < QUESTIONS.length){
+      renderQuestion();
+    }else{
+      showResult();
+    }
+  }, 220);
+}
+
+function showResult(){
+  // 统计每个维度的得分
+  const scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  QUESTIONS.forEach((q, i)=>{
+    const a = answers[i];
+    if(q.key === "E"){ a==="right" ? scores.E++ : scores.I++; }
+    else if(q.key === "N"){ a==="right" ? scores.N++ : scores.S++; }
+    else if(q.key === "F"){ a==="right" ? scores.F++ : scores.T++; }
+    else if(q.key === "P"){ a==="right" ? scores.P++ : scores.J++; }
+  });
+
+  const type =
+    (scores.E >= scores.I ? "E" : "I") +
+    (scores.S >= scores.N ? "S" : "N") +
+    (scores.T >= scores.F ? "T" : "F") +
+    (scores.J >= scores.P ? "J" : "P");
+
+  const data = TYPES[type];
+  document.getElementById("rType").textContent = type;
+  document.getElementById("rType").style.color = data.color;
+  document.querySelector(".glow").style.background = data.color;
+  document.getElementById("rName").textContent = data.full;
+  document.getElementById("rEn").textContent = data.en + " · " + data.enCn;
+  document.getElementById("rDesc").textContent = data.desc;
+
+  // 维度条
+  const dims = [
+    ["E","I"],["S","N"],["T","F"],["J","P"]
+  ];
+  const barsEl = document.getElementById("rBars");
+  barsEl.innerHTML = "";
+  dims.forEach(([a,b])=>{
+    const sa = scores[a], sb = scores[b];
+    const total = sa+sb || 1;
+    const pa = Math.round(sa/total*100);
+    const row = document.createElement("div");
+    row.className = "bar-row";
+    row.innerHTML = `
+      <span class="lbl dimA">${a}</span>
+      <div class="bar"><div class="fill left" style="width:0" data-w="${pa}%"></div></div>
+      <div class="bar"><div class="fill right" style="width:0" data-w="${100-pa}%"></div></div>
+      <span class="lbl dimB">${b}</span>
+      <span class="pct">${pa}% / ${100-pa}%</span>`;
+    barsEl.appendChild(row);
+  });
+
+  // 特质
+  const traitsEl = document.getElementById("rTraits");
+  traitsEl.innerHTML = "";
+  data.traits.forEach(([k,v])=>{
+    const d = document.createElement("div");
+    d.className = "trait";
+    d.innerHTML = `<b>${k}</b><span>${v}</span>`;
+    traitsEl.appendChild(d);
+  });
+
+  showScreen("result");
+
+  // 延迟触发进度条动画
+  setTimeout(()=>{
+    document.querySelectorAll(".fill[data-w]").forEach(f=>{
+      f.style.width = f.getAttribute("data-w");
+    });
+  }, 120);
+}
+
+function restart(){
+  showScreen("welcome");
+}
+
+// 页面加载时渲染 16 型人格全览
+renderTypes();
+</script>
+</body>
+</html>
